@@ -7,9 +7,6 @@ import json
 import logging
 from html2image import Html2Image
 
-
-# We are gonna use SQLite for the basic example here... but you can really use whatever you want, something in da cloud maybe. 
-
 # Set up logging
 logging.basicConfig(level=logging.INFO)
 
@@ -17,7 +14,7 @@ logging.basicConfig(level=logging.INFO)
 conn = sqlite3.connect('web_scraper.db')
 c = conn.cursor()
 
-# Create tables if they do not exist (This will be removed after first run, but this is meant to get someone started)
+# Create tables if they don't exist
 def create_tables():
     c.execute('''
     CREATE TABLE IF NOT EXISTS pages (
@@ -51,7 +48,7 @@ def create_tables():
     ''')
     conn.commit()
 
-# We need to knoe the errors, yo! Hoewever, I am not sure we need to log these to the DB. 
+
 def log_error(url, error_message):
     timestamp = time.strftime('%Y-%m-%d %H:%M:%S')
     c.execute('INSERT INTO error_logs (url, timestamp, error_message) VALUES (?, ?, ?)',
@@ -61,7 +58,7 @@ def log_error(url, error_message):
 
 visited_urls = set()
 
-# Kinda self explanitory, no?
+
 def download_image(url):
     try:
         response = requests.get(url)
@@ -73,7 +70,7 @@ def download_image(url):
         log_error(url, error_message)
     return None
 
-# Same
+
 def get_screenshot(url):
     try:
         hti = Html2Image()
@@ -87,7 +84,7 @@ def get_screenshot(url):
         log_error(url, error_message)
         return None
 
-# Prob wanna rethink what we're storing here as the DB will become too large, too quick. 
+
 def store_data(url, html, data, media_urls, screenshot):
     timestamp = time.strftime('%Y-%m-%d %H:%M:%S')
     c.execute('INSERT INTO pages (url, timestamp, html, data, screenshot) VALUES (?, ?, ?, ?, ?)',
@@ -100,9 +97,9 @@ def store_data(url, html, data, media_urls, screenshot):
                   (page_id, media_url['type'], media_url['url'], media_data))
     conn.commit()
 
-# Review this if you want to change how the script navigates the urls, specifically at the recursive call section
-def scrape(url):
-    if url in visited_urls:
+
+def scrape(url, depth=1):
+    if url in visited_urls or depth < 1:
         return
     visited_urls.add(url)
 
@@ -139,16 +136,17 @@ def scrape(url):
     domain = urlparse(url).netloc
     for link in data['links']:
         absolute_link = urljoin(url, link)
-        if urlparse(absolute_link,).netloc == domain:
-            scrape(absolute_link, depth=1)
+        if urlparse(absolute_link).netloc == domain:
+            scrape(absolute_link, depth - 1)
 
 
-def main(urls):
+def main(urls, depth=1):
     create_tables()
     for url in urls:
-        scrape(url)
+        scrape(url, depth)
 
 
 if __name__ == '__main__':
-    urls = ['https://www.shutterfly.com/']  # Replace with actual URLs you'll need scraped
-    main(urls)
+    # Replace with actual URLs that need scraped and update the depth at which you want the scraping.
+    urls = ['https://www.shutterfly.com/']
+    main(urls, depth=2)
