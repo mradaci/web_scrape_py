@@ -4,4 +4,4 @@
 
 1. SQlite Database
 2. Python 3+ configured on machine
-3. Vitual Env created with all import dependencies *see code*
+3. Vitual Env created with all import dependencies (see code)
