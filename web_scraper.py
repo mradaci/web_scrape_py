@@ -139,8 +139,8 @@ def scrape(url):
     domain = urlparse(url).netloc
     for link in data['links']:
         absolute_link = urljoin(url, link)
-        if urlparse(absolute_link).netloc == domain:
-            scrape(absolute_link)
+        if urlparse(absolute_link,).netloc == domain:
+            scrape(absolute_link, depth=1)
 
 
 def main(urls):
